@@ -1,9 +1,12 @@
 import "dotenv/config";
 import express from "express";
 import productsRouter from "./routes/products.js";
+import authRouter from "./routes/auth.js";
+import cors from "cors";
 const app = express();
 
 // Middleware
+app.use(cors("*"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -17,6 +20,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/products", productsRouter);
+app.use("/auth", authRouter);
 //TODO: Add more routes as needed
 
 export { app };
