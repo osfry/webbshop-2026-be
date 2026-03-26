@@ -23,4 +23,4 @@ app.use("/products", productsRouter);
 app.use("/auth", authRouter);
 //TODO: Add more routes as needed
 
-export { app };
+export default app;

@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll, beforeEach } from "vitest";
 import Product from "../../src/models/Product.js";
 import request from "supertest";
-import { app } from "../../src/app.js";
+import app from "../../src/app.js";
 import { clearDatabase } from "../setup.js";
 
 describe("API products routes", () => {
