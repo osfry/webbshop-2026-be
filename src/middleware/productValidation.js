@@ -1,11 +1,12 @@
 import { body, validationResult } from "express-validator";
 
 export const validateProduct = [
-  body("name").notEmpty().withMessage("Name is required"),
-  body("price").isFloat({ min: 0 }).withMessage("Price must be greater than 0"),
-  body("stock").isInt({ min: 0 }).withMessage("Stock must be greater than 0"),
-  body("image").notEmpty().withMessage("Image is required"),
-  body("slug").notEmpty().withMessage("Slug is required"),
+  body("name").trim().notEmpty().withMessage("Name is required"),
+  body("image").trim().notEmpty().withMessage("Image is required"),
+  body("lightRequirements")
+    .isInt({ min: 1, max: 3 })
+    .withMessage("Light requirements must be an integer between 1 and 3"),
+  body("coordinates").trim().notEmpty().withMessage("Coordinates is required"),
   //TODO: Add more validation rules as needed
 ];
 
