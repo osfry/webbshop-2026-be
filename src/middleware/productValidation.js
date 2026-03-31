@@ -6,8 +6,14 @@ export const validateProduct = [
   body("lightRequirements")
     .isInt({ min: 1, max: 3 })
     .withMessage("Light requirements must be an integer between 1 and 3"),
-  body("coordinates").trim().notEmpty().withMessage("Coordinates is required"),
-  //TODO: Add more validation rules as needed
+  
+  body("coordinates").isObject().withMessage("Coordinates must be an object"),
+  body("coordinates.lat")
+    .isFloat()
+    .withMessage("Latitude must be a number"),
+  body("coordinates.lng")
+    .isFloat()
+    .withMessage("Longitude must be a number"),
 ];
 
 export const validateProductResult = (req, res, next) => {

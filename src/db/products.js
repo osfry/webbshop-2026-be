@@ -1,7 +1,11 @@
 import Product from "../models/Product.js";
 
 export async function getProducts() {
-  return await Product.find();
+    return await Product.find().populate('owner', 'name');
+}
+
+export async function getProductById(id) {
+    return await Product.findById(id).populate('owner', 'name', 'email')
 }
 
 export async function createProduct(productData) {

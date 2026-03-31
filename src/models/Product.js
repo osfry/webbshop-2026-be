@@ -7,6 +7,11 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    description: {
+      type: String,
+      required: false,
+      trim: true
+    },
     image: {
       type: String,
       required: true,
@@ -18,13 +23,14 @@ const productSchema = new mongoose.Schema(
       enum: [1, 2, 3],
     },
     coordinates: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
+      lat: {type: Number, required: true},
+      lng: {type: Number, required: true},
     },
-
-    //TODO: Add more fields as needed
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    }
   },
   { timestamps: true },
 );
