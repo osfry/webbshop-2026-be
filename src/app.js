@@ -3,6 +3,7 @@ import express from "express";
 import mongoose from "mongoose";
 import productsRouter from "./routes/products.js";
 import authRouter from "./routes/auth.js";
+import tradesRouter from "./routes/trade.js";
 import cors from "cors";
 
 const app = express();
@@ -36,7 +37,7 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
-
+app.use("/trades", tradesRouter);
 app.use("/products", productsRouter);
 app.use("/auth", authRouter);
 //TODO: Add more routes as needed
