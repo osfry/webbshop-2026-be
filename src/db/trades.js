@@ -1,11 +1,11 @@
 import Trade from "../models/Trade.js";
 
 export async function getTrades() {
-  return await Trade.find();
+  return await Trade.find().populate("requester receiver product");
 }
 
 export async function getTradeById(id) {
-  return await Trade.findById(id);
+  return await Trade.findById(id).populate("requester receiver product");
 }
 
 export async function createTrade(tradeData) {
@@ -39,6 +39,18 @@ export async function deleteTrade(id) {
     return await Trade.findByIdAndDelete(id);
   } catch (error) {
     console.error("Error deleting trade:", error);
+    throw error;
+  }
+}
+
+export async function getUserTradeHistory(userId) {
+  try {
+    return await Trade.find({
+      status: "completed",
+      $or: [{ requester: userId }, { receiver: userId }],
+    }).populate("requester receiver product");
+  } catch (error) {
+    console.error("Error fetching trade history:", error);
     throw error;
   }
 }

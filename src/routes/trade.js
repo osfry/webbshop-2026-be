@@ -1,6 +1,13 @@
 import { Router } from "express";
 import { validateTrade, validateTradeResult, validateTradeStatus } from "../middleware/tradeValidation.js";
-import { getTrades, getTradeById, createTrade, deleteTrade, updateTradeStatus } from "../db/trades.js";
+import {
+  getTrades,
+  getTradeById,
+  createTrade,
+  deleteTrade,
+  updateTradeStatus,
+  getUserTradeHistory,
+} from "../db/trades.js";
 const router = Router();
 
 //GET ALL TRADES
@@ -71,18 +78,15 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-//TODO: HISTORY OF TRADES FOR USER
+//HISTORY OF TRADES FOR USER
 router.get("/history/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
-    const trades = await getTrades();
-    const completedUserTrades = trades
-      .filter((trade) => trade.requester.toString() === userId || trade.receiver.toString() === userId)
-      .filter((trade) => trade.status === "completed");
-    if (completedUserTrades.length === 0) {
+    const trades = await getUserTradeHistory(userId);
+    if (!trades || trades.length === 0) {
       return res.status(404).json({ error: "No completed trades found for this user" });
     }
-    res.json(completedUserTrades);
+    res.json(trades);
   } catch (error) {
     console.error("Error fetching trade history:", error);
     res.status(500).json({ error: "Failed to fetch trade history" });
