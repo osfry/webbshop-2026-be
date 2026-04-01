@@ -18,3 +18,32 @@ export async function createTrade(tradeData) {
     throw error;
   }
 }
+
+export async function updateTradeStatus(id, status) {
+  try {
+    const trade = await getTradeById(id);
+    if (!trade) {
+      throw new Error("Trade not found");
+    }
+    trade.status = status;
+    await trade.save();
+    return trade;
+  } catch (error) {
+    console.error("Error updating trade status:", error);
+    throw error;
+  }
+}
+
+export async function deleteTrade(id) {
+  try {
+    const trade = await getTradeById(id);
+    if (!trade) {
+      throw new Error("Trade not found");
+    }
+    await trade.deleteOne();
+    return true;
+  } catch (error) {
+    console.error("Error deleting trade:", error);
+    throw error;
+  }
+}
