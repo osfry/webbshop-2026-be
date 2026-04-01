@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema({
@@ -14,6 +14,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  plants: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    }
+  ],
+  trades: [
+    {
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "Trade"
+    }
+  ],
 });
 
 userSchema.pre(

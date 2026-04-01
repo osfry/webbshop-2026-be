@@ -9,3 +9,11 @@ export async function createUser(userData) {
 export async function findUserByEmail(email) {
   return await User.findOne({ email });
 }
+
+export async function getUserWithPlants(id) {
+  return await User.findById(id).populate("plants");
+}
+export async function getUserWithTrades(id) {
+  return await User.findById(id).populate("trades");
+}
+
