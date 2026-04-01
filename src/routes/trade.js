@@ -24,8 +24,8 @@ router.get("/:id", async (req, res) => {
 //CREATE TRADE
 router.post("/", validateTrade, validateTradeResult, async (req, res) => {
   try {
-    const { requester, receiver, product, status } = req.body;
-    const trade = await createTrade({ requester, receiver, product, status });
+    const { requester, receiver, product } = req.body;
+    const trade = await createTrade({ requester, receiver, product, status: "pending" });
     res.status(201).json(trade);
   } catch (error) {
     console.error("Trade creation error:", error);
@@ -37,7 +37,7 @@ router.post("/", validateTrade, validateTradeResult, async (req, res) => {
 router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) => {
   try {
     const { status } = req.body;
-    const trade = await getTradeById(req.params.id);
+    const trade = await updateTradeStatus(req.params.id, status);
     if (!trade) {
       return res.status(404).json({ error: "Trade not found" });
     }
@@ -45,8 +45,8 @@ router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) =>
       //TODO: what should happen if accepted?
     } else if (status === "rejected") {
       //If user rejects, delete trade?
-      await trade.deleteOne();
-      return res.json({ message: "Trade rejected and deleted successfully" });
+      // await trade.deleteOne();
+      // return res.json({ message: "Trade rejected and deleted successfully" });
     }
     trade.status = status;
     await trade.save();
@@ -57,13 +57,13 @@ router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) =>
   }
 });
 
+//DELETE TRADE
 router.delete("/:id", async (req, res) => {
   try {
-    const trade = await getTradeById(req.params.id);
+    const trade = await deleteTrade(req.params.id);
     if (!trade) {
       return res.status(404).json({ error: "Trade not found" });
     }
-    await trade.deleteOne();
     res.json({ message: "Trade deleted successfully" });
   } catch (error) {
     console.error("Trade deletion error:", error);
@@ -71,4 +71,21 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+//TODO: HISTORY OF TRADES FOR USER
+router.get("/history/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const trades = await getTrades();
+    const completedUserTrades = trades
+      .filter((trade) => trade.requester.toString() === userId || trade.receiver.toString() === userId)
+      .filter((trade) => trade.status === "completed");
+    if (completedUserTrades.length === 0) {
+      return res.status(404).json({ error: "No completed trades found for this user" });
+    }
+    res.json(completedUserTrades);
+  } catch (error) {
+    console.error("Error fetching trade history:", error);
+    res.status(500).json({ error: "Failed to fetch trade history" });
+  }
+});
 export default router;

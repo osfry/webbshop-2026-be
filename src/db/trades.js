@@ -36,12 +36,7 @@ export async function updateTradeStatus(id, status) {
 
 export async function deleteTrade(id) {
   try {
-    const trade = await getTradeById(id);
-    if (!trade) {
-      throw new Error("Trade not found");
-    }
-    await trade.deleteOne();
-    return true;
+    return await Trade.findByIdAndDelete(id);
   } catch (error) {
     console.error("Error deleting trade:", error);
     throw error;
