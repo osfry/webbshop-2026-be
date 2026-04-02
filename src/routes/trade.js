@@ -8,6 +8,9 @@ import {
   updateTradeStatus,
   getUserTradeHistory,
 } from "../db/trades.js";
+import { getProductById } from "../db/products.js";
+import { validateProductResult } from "../middleware/productValidation.js";
+
 const router = Router();
 
 //GET ALL TRADES
@@ -29,10 +32,17 @@ router.get("/:id", async (req, res) => {
 });
 
 //CREATE TRADE
-router.post("/", validateTrade, validateTradeResult, async (req, res) => {
+router.post("/",validateTrade, validateProductResult, validateTradeResult, async (req, res) => {
   try {
-    const { requester, receiver, product } = req.body;
-    const trade = await createTrade({ requester, receiver, product, status: "pending" });
+    // const {requesterId} = req.user.id
+    const requesterId = "69cb9e7074a56daa249925a1"
+    const { productId } = req.body;
+
+    const product = await getProductById(productId)
+    const trade = await createTrade(
+      { requester: requesterId,
+        receiver: product.owner,
+        product: productId, status: "pending" });
     res.status(201).json(trade);
   } catch (error) {
     console.error("Trade creation error:", error);
@@ -52,8 +62,8 @@ router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) =>
       //TODO: what should happen if accepted?
     } else if (status === "rejected") {
       //If user rejects, delete trade?
-      // await trade.deleteOne();
-      // return res.json({ message: "Trade rejected and deleted successfully" });
+      await trade.deleteOne();
+      return res.json({ message: "Trade rejected and deleted successfully" });
     }
     trade.status = status;
     await trade.save();

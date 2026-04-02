@@ -1,9 +1,10 @@
 import { body, validationResult } from "express-validator";
 
 export const validateTrade = [
-  body("requester").isMongoId().withMessage("Requester must be a valid user id"),
-  body("receiver").isMongoId().withMessage("Receiver must be a valid user id"),
-  body("product").isMongoId().withMessage("Product must be a valid product id"),
+  // Vi validerar ENDAST productId eftersom det är det enda frontend skickar
+  body("productId")
+    .exists().withMessage("Product ID is required")
+    .isMongoId().withMessage("Invalid Product ID format"),
 ];
 
 export const validateTradeStatus = [
@@ -11,6 +12,7 @@ export const validateTradeStatus = [
     .isIn(["pending", "accepted", "rejected", "completed"])
     .withMessage("Status must be pending, accepted, rejected or completed"),
 ];
+
 export const validateTradeResult = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
