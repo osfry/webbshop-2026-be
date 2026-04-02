@@ -73,7 +73,7 @@ router.post("/logout", (req, res) => {
 // Get all users plants
 router.get("/:id/plants", async (req, res) => {
   try {
-    const user = await getUserWithPlants(req.params.id) 
+    const plants = await getUserWithPlants(req.params.id) 
 
     res.json(plants)
   } catch (error) {

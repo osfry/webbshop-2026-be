@@ -13,7 +13,7 @@ export async function findUserByEmail(email) {
 }
 
 export async function getUserWithPlants(id) {
-  return await Product.findOne({ owner: id })
+  return await Product.find({ owner: id })
 }
 export async function getUserWithTrades(id) {
   return await Trade.find({ $or: [{ requester: id}, {receiver: id }]});
