@@ -14,7 +14,7 @@ const router = Router();
 router.get("/", async (req, res) => {
   const trades = await getTrades();
   if (!trades) {
-    return res.status(404).json({ error: "No trades found" });
+    return res.status(404).json({ message: "No trades found" });
   }
   res.json(trades);
 });
@@ -23,7 +23,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const trade = await getTradeById(req.params.id);
   if (!trade) {
-    return res.status(404).json({ error: "Trade not found" });
+    return res.status(404).json({ message: "Trade not found" });
   }
   res.json(trade);
 });
@@ -36,7 +36,7 @@ router.post("/", validateTrade, validateTradeResult, async (req, res) => {
     res.status(201).json(trade);
   } catch (error) {
     console.error("Trade creation error:", error);
-    res.status(500).json({ error: "Trade creation failed" });
+    res.status(500).json({ message: "Trade creation failed" });
   }
 });
 
@@ -46,7 +46,7 @@ router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) =>
     const { status } = req.body;
     const trade = await updateTradeStatus(req.params.id, status);
     if (!trade) {
-      return res.status(404).json({ error: "Trade not found" });
+      return res.status(404).json({ message: "Trade not found" });
     }
     if (status === "accepted") {
       //TODO: what should happen if accepted?
@@ -60,7 +60,7 @@ router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) =>
     res.json(trade);
   } catch (error) {
     console.error("Trade update error:", error);
-    res.status(500).json({ error: "Trade update failed" });
+    res.status(500).json({ message: "Trade update failed" });
   }
 });
 
@@ -74,7 +74,7 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "Trade deleted successfully" });
   } catch (error) {
     console.error("Trade deletion error:", error);
-    res.status(500).json({ error: "Trade deletion failed" });
+    res.status(500).json({ message: "Trade deletion failed" });
   }
 });
 
@@ -84,12 +84,12 @@ router.get("/history/:userId", async (req, res) => {
     const userId = req.params.userId;
     const trades = await getUserTradeHistory(userId);
     if (!trades || trades.length === 0) {
-      return res.status(404).json({ error: "No completed trades found for this user" });
+      return res.status(404).json({ message: "No completed trades found for this user" });
     }
     res.json(trades);
   } catch (error) {
     console.error("Error fetching trade history:", error);
-    res.status(500).json({ error: "Failed to fetch trade history" });
+    res.status(500).json({ message: "Failed to fetch trade history" });
   }
 });
 export default router;
