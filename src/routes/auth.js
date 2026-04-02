@@ -86,7 +86,7 @@ router.get("/:id/plants", async (req, res) => {
 // Get user trade history
 router.get("/:id/trades", async (req, res) => {
   try {
-    const user = await getUserWithTrades(req.params.id) 
+    const trades = await getUserWithTrades(req.params.id) 
 
     res.json(trades)
 
