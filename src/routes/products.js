@@ -89,7 +89,7 @@ router.delete("/:id", validateId, async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    return res.status(201).json(deletedProduct)
+    return res.status(204).json(deletedProduct)
   } catch (error) {
     res.status(500).json({message: 'Server error', error})
   }
