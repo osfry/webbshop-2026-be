@@ -6,7 +6,7 @@ export async function getProducts() {
 }
 
 export async function getProductById(id) {
-    return await Product.findById(id).populate('owner', 'name', 'email')
+    return await Product.findById(id).populate('owner', 'name email')
 }
 
 export async function createProduct(productData) {

@@ -13,7 +13,7 @@ import {
 } from "../db/products.js";
 const router = Router();
 
-router.get("/", validateId, async (req, res) => {
+router.get("/", async (req, res) => {
   const products = await getProducts();
   res.json(products);
 });
@@ -37,7 +37,7 @@ router.get("/:id", validateId, async (req, res) => {
 
 //TODO GET /products/:slug
 
-router.post("/", validateId, validateProduct, async (req, res) => {
+router.post("/", validateProduct, async (req, res) => {
   try {
     const { name, description, image, lightRequirements, coordinates, owner } =
       req.body;
