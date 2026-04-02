@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateRegister, validateAuthResult } from "../middleware/authValidation.js";
-import { createUser, findUserByEmail } from "../db/users.js";
+import { createUser, findUserByEmail, getUserWithPlants, getUserWithTrades } from "../db/users.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -32,6 +32,7 @@ router.post(
   }
 );
 
+// Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -63,8 +64,43 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+// Logout
 router.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
+// Get all users plants
+router.get("/:id/plants", async (req, res) => {
+  try {
+    const user = await getUserWithPlants(req.params.id) 
+      
+      if(!user) {
+        return res.status(404).json({ message: "User not found"})
+      }
+
+    res.json(user.plants)
+  } catch (error) {
+    console.error("Get plants error:", error)
+    res.status(500).json({ message: "Failed to fetch plants"})
+  }
+})
+
+
+// Get user trade history
+router.get("/:id/trades", async (req, res) => {
+  try {
+    const user = await getUserWithTrades(req.params.id) 
+
+    if(!user) {
+      return res.status(404).json({ message: "User not found"})
+    }
+
+    res.json(user.trades)
+  } catch (error) {
+        console.error("Get trades error:", error)
+    res.status(500).json({ message: "Failed to fetch trades"})
+  }
+})
+// TODO: Dubbelkolla att trades hanteras korrekt när routes är klara
 export default router;
