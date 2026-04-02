@@ -74,12 +74,8 @@ router.post("/logout", (req, res) => {
 router.get("/:id/plants", async (req, res) => {
   try {
     const user = await getUserWithPlants(req.params.id) 
-      
-      if(!user) {
-        return res.status(404).json({ message: "User not found"})
-      }
 
-    res.json(user.plants)
+    res.json(plants)
   } catch (error) {
     console.error("Get plants error:", error)
     res.status(500).json({ message: "Failed to fetch plants"})
@@ -92,11 +88,8 @@ router.get("/:id/trades", async (req, res) => {
   try {
     const user = await getUserWithTrades(req.params.id) 
 
-    if(!user) {
-      return res.status(404).json({ message: "User not found"})
-    }
+    res.json(trades)
 
-    res.json(user.trades)
   } catch (error) {
         console.error("Get trades error:", error)
     res.status(500).json({ message: "Failed to fetch trades"})

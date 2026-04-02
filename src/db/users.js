@@ -1,4 +1,6 @@
 import User from "../models/User.js";
+import Product from "../models/Product.js"
+import Trade from "../models/Trade.js"
 
 export async function createUser(userData) {
   const user = new User(userData);
@@ -11,9 +13,9 @@ export async function findUserByEmail(email) {
 }
 
 export async function getUserWithPlants(id) {
-  return await User.findById(id).populate("plants");
+  return await Product.findOne({ owner: id })
 }
 export async function getUserWithTrades(id) {
-  return await User.findById(id).populate("trades");
+  return await Trade.find({ $or: [{ requester: id}, {receiver: id }]});
 }
 
