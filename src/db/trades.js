@@ -1,11 +1,20 @@
 import Trade from "../models/Trade.js";
 
 export async function getTrades() {
-  return await Trade.find().populate("requester receiver product");
+  // return await Trade.find().populate("requester receiver product");
+  return await Trade.find().populate([
+    { path: "requester", select: "-password -email" },
+    { path: "receiver", select: "-password -email" },
+    { path: "product" },
+  ]);
 }
 
 export async function getTradeById(id) {
-  return await Trade.findById(id).populate("requester receiver product");
+  return await Trade.findById(id).populate([
+    { path: "requester", select: "-password -email" },
+    { path: "receiver", select: "-password -email" },
+    { path: "product" },
+  ]);
 }
 
 export async function createTrade(tradeData) {
@@ -48,7 +57,11 @@ export async function getUserTradeHistory(userId) {
     return await Trade.find({
       status: "completed",
       $or: [{ requester: userId }, { receiver: userId }],
-    }).populate("requester receiver product");
+    }).populate([
+      { path: "requester", select: "-password -email" },
+      { path: "receiver", select: "-password -email" },
+      { path: "product" },
+    ]);
   } catch (error) {
     console.error("Error fetching trade history:", error);
     throw error;

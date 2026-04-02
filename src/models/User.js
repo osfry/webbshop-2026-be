@@ -14,18 +14,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  plants: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-    }
-  ],
-  trades: [
-    {
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: "Trade"
-    }
-  ],
 });
 
 userSchema.pre(
