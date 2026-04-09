@@ -10,6 +10,7 @@ import {
 } from "../db/trades.js";
 import { getProductById } from "../db/products.js";
 import { validateProductResult } from "../middleware/productValidation.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -32,17 +33,25 @@ router.get("/:id", async (req, res) => {
 });
 
 //CREATE TRADE
-router.post("/",validateTrade, validateProductResult, validateTradeResult, async (req, res) => {
+router.post("/", requireAuth, validateTrade, validateProductResult, validateTradeResult, async (req, res) => {
   try {
-    // const {requesterId} = req.user.id
-    const requesterId = "69cb9e7074a56daa249925a1"
     const { productId } = req.body;
+    // const requesterId = "69cb9e7074a56daa249925a1"
 
-    const product = await getProductById(productId)
-    const trade = await createTrade(
-      { requester: requesterId,
-        receiver: product.owner,
-        product: productId, status: "pending" });
+    const requesterId = req.user.id; //
+
+    const product = await getProductById(productId); //
+    if (!product) {
+      //
+      return res.status(404).json({ message: "Product not found" }); //
+    }
+
+    const trade = await createTrade({
+      requester: requesterId,
+      receiver: product.owner,
+      product: productId,
+      status: "pending",
+    });
     res.status(201).json(trade);
   } catch (error) {
     console.error("Trade creation error:", error);
