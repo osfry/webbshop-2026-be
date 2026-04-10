@@ -69,14 +69,12 @@ router.get("/:id", requireAuth, async (req, res) => {
 router.post("/", requireAuth, validateTrade, validateProductResult, validateTradeResult, async (req, res) => {
   try {
     const { productId } = req.body;
-    // const requesterId = "69cb9e7074a56daa249925a1"
 
-    const requesterId = req.user.id; //
+    const requesterId = req.user.id;
 
-    const product = await getProductById(productId); //
+    const product = await getProductById(productId);
     if (!product) {
-      //
-      return res.status(404).json({ message: "Product not found" }); //
+      return res.status(404).json({ message: "Product not found" });
     }
 
     if (product.owner?._id ?? product.owner === requesterId) {
@@ -113,7 +111,6 @@ router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async 
     if (status === "accepted") {
       //TODO: what should happen if accepted?
     } else if (status === "rejected") {
-      //If user rejects, delete trade?
       await existingTrade.deleteOne();
       return res.json({ message: "Trade rejected and deleted successfully" });
     }
