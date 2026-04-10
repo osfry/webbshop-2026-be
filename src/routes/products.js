@@ -77,9 +77,9 @@ router.patch(
       }
 
       // Använder .toString() för att MongoDB-id är objekt-id
-      if (product.owner.toString() !== userId) {
+      if (product.owner._id.toString() !== userId) {
         return res.status(403).json({ 
-          message: "Du har inte tillåtelse att ändra på någon annans produkt." 
+          message: "You do not own the rights to edit this product" 
         });
       }
       delete updateData.owner;
@@ -94,16 +94,26 @@ router.patch(
   },
 );
 
-router.delete("/:id", validateId, async (req, res) => {
+router.delete("/:id", requireAuth, validateId, async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedProduct = deleteProduct(id);
+    const userId = req.user.id
 
-    if (!deletedProduct) {
-      return res.status(404).json({ message: "Product not found" });
+    const product = await getProductById(id)
+
+    if (!product) {
+      return res.status(404).json({message: "No product found"})
     }
 
-    return res.status(204).json(deletedProduct)
+    if (product.owner._id.toString() !== userId) {
+      return res.status(403).json({ 
+        message: "You do not own the rights to delete this product" 
+      });
+    }
+
+    await deleteProduct(id)
+
+    return res.status(200).json({message: "Product has been deleted"})
   } catch (error) {
     res.status(500).json({message: 'Server error', error})
   }
