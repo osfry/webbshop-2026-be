@@ -10,15 +10,15 @@ const router = Router();
 function getId(value) {
   if (!value) return null;
   if (typeof value === "object") {
-    return String(value._id ?? value.id ?? "");
+    return value._id ?? value.id ?? "";
   }
-  return String(value);
+  return value;
 }
 
 function isTradeParticipant(trade, userId) {
   const requesterId = getId(trade.requester);
   const receiverId = getId(trade.receiver);
-  const currentUserId = String(userId);
+  const currentUserId = userId;
   return requesterId === currentUserId || receiverId === currentUserId;
 }
 
@@ -35,7 +35,7 @@ router.get("/", requireAuth, async (req, res) => {
 router.get("/history/:userId", requireAuth, async (req, res) => {
   try {
     const userId = req.params.userId;
-    if (String(req.user.id) !== String(userId)) {
+    if (req.user.id !== userId) {
       return res.status(403).json({ message: "You are not allowed to view this trade history" });
     }
 
@@ -79,7 +79,7 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
       return res.status(404).json({ message: "Product not found" }); //
     }
 
-    if (String(product.owner?._id ?? product.owner) === String(requesterId)) {
+    if (product.owner?._id ?? product.owner === requesterId) {
       return res.status(400).json({ message: "You cannot create a trade for your own product" });
     }
 
@@ -105,7 +105,7 @@ router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async 
     }
 
     const receiverId = getId(existingTrade.receiver);
-    if (String(receiverId) !== String(req.user.id)) {
+    if (receiverId !== req.user.id) {
       return res.status(403).json({ message: "Only the receiver can update trade status" });
     }
 
@@ -136,7 +136,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
     }
 
     const requesterId = getId(existingTrade.requester);
-    if (String(requesterId) !== String(req.user.id)) {
+    if (requesterId !== req.user.id) {
       return res.status(403).json({ message: "Only the requester can delete this trade" });
     }
 
