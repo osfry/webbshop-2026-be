@@ -4,6 +4,7 @@ import {
   validateProduct,
   validateProductUpdate,
 } from "../middleware/productValidation.js";
+import { requireAuth } from "../middleware/auth.js";
 import {
   getProducts,
   createProduct,
@@ -37,10 +38,11 @@ router.get("/:id", validateId, async (req, res) => {
 
 //TODO GET /products/:slug
 
-router.post("/", validateProduct, async (req, res) => {
+router.post("/",requireAuth, validateProduct, async (req, res) => {
   try {
-    const { name, description, image, lightRequirements, coordinates, owner } =
+    const { name, description, image, lightRequirements, coordinates } =
       req.body;
+      const ownerId = req.user.id
 
     const product = await createProduct({
       name,
@@ -48,7 +50,7 @@ router.post("/", validateProduct, async (req, res) => {
       image,
       lightRequirements,
       coordinates,
-      owner,
+      owner: ownerId,
     });
     res.status(201).json(product);
   } catch (error) {
@@ -59,23 +61,35 @@ router.post("/", validateProduct, async (req, res) => {
 
 router.patch(
   "/:id",
+  requireAuth,
   validateId,
   validateProductUpdate,
   async (req, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.id
       const updateData = req.body;
 
-      const updatedProduct = await updateProduct(id, updateData);
+      const product = await getProductById(id);
 
-      if (!updatedProduct) {
+      if (!product) {
         return res.status(404).json({ message: "No product found" });
       }
+
+      // Använder .toString() för att MongoDB-id är objekt-id
+      if (product.owner.toString() !== userId) {
+        return res.status(403).json({ 
+          message: "Du har inte tillåtelse att ändra på någon annans produkt." 
+        });
+      }
+      delete updateData.owner;
+
+      const updatedProduct = await updateProduct(id, updateData)
 
       return res.json(updatedProduct);
     } catch (error) {
       console.error("PATCH /products error: ", error);
-      return res.json(500).json({ message: "Server error" });
+      return res.status(500).json({ message: "Server error" });
     }
   },
 );
