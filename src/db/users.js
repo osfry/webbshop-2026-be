@@ -19,3 +19,6 @@ export async function getUserWithTrades(id) {
   return await Trade.find({ $or: [{ requester: id}, {receiver: id }]});
 }
 
+export async function findUserById(id) {
+  return await User.findById(id).select("-password");
+}
