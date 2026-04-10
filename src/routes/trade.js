@@ -1,21 +1,29 @@
 import { Router } from "express";
 import { validateTrade, validateTradeResult, validateTradeStatus } from "../middleware/tradeValidation.js";
-import {
-  getTrades,
-  getTradeById,
-  createTrade,
-  deleteTrade,
-  updateTradeStatus,
-  getUserTradeHistory,
-} from "../db/trades.js";
+import { getTrades, getTradeById, createTrade, deleteTrade, getUserTradeHistory } from "../db/trades.js";
 import { getProductById } from "../db/products.js";
 import { validateProductResult } from "../middleware/productValidation.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
+function getId(value) {
+  if (!value) return null;
+  if (typeof value === "object") {
+    return String(value._id ?? value.id ?? "");
+  }
+  return String(value);
+}
+
+function isTradeParticipant(trade, userId) {
+  const requesterId = getId(trade.requester);
+  const receiverId = getId(trade.receiver);
+  const currentUserId = String(userId);
+  return requesterId === currentUserId || receiverId === currentUserId;
+}
+
 //GET ALL TRADES
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   const trades = await getTrades();
   if (!trades) {
     return res.status(404).json({ message: "No trades found" });
@@ -23,12 +31,37 @@ router.get("/", async (req, res) => {
   res.json(trades);
 });
 
+//HISTORY OF TRADES FOR USER
+router.get("/history/:userId", requireAuth, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (String(req.user.id) !== String(userId)) {
+      return res.status(403).json({ message: "You are not allowed to view this trade history" });
+    }
+
+    const trades = await getUserTradeHistory(userId);
+    if (!trades || trades.length === 0) {
+      return res.status(404).json({ message: "No completed trades found for this user" });
+    }
+    res.json(trades);
+  } catch (error) {
+    console.error("Error fetching trade history:", error);
+    res.status(500).json({ message: "Failed to fetch trade history" });
+  }
+});
+
 //GET TRADE BY ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", requireAuth, async (req, res) => {
   const trade = await getTradeById(req.params.id);
+
   if (!trade) {
     return res.status(404).json({ message: "Trade not found" });
   }
+
+  if (!isTradeParticipant(trade, req.user.id)) {
+    return res.status(403).json({ message: "You are not allowed to view this trade" });
+  }
+
   res.json(trade);
 });
 
@@ -46,6 +79,10 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
       return res.status(404).json({ message: "Product not found" }); //
     }
 
+    if (String(product.owner?._id ?? product.owner) === String(requesterId)) {
+      return res.status(400).json({ message: "You cannot create a trade for your own product" });
+    }
+
     const trade = await createTrade({
       requester: requesterId,
       receiver: product.owner,
@@ -60,23 +97,30 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
 });
 
 //CHANGE TRADE STATUS
-router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) => {
+router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async (req, res) => {
   try {
-    const { status } = req.body;
-    const trade = await updateTradeStatus(req.params.id, status);
-    if (!trade) {
+    const existingTrade = await getTradeById(req.params.id);
+    if (!existingTrade) {
       return res.status(404).json({ message: "Trade not found" });
     }
+
+    const receiverId = getId(existingTrade.receiver);
+    if (String(receiverId) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Only the receiver can update trade status" });
+    }
+
+    const { status } = req.body;
     if (status === "accepted") {
       //TODO: what should happen if accepted?
     } else if (status === "rejected") {
       //If user rejects, delete trade?
-      await trade.deleteOne();
+      await existingTrade.deleteOne();
       return res.json({ message: "Trade rejected and deleted successfully" });
     }
-    trade.status = status;
-    await trade.save();
-    res.json(trade);
+
+    existingTrade.status = status;
+    await existingTrade.save();
+    res.json(existingTrade);
   } catch (error) {
     console.error("Trade update error:", error);
     res.status(500).json({ message: "Trade update failed" });
@@ -84,8 +128,18 @@ router.put("/:id", validateTradeStatus, validateTradeResult, async (req, res) =>
 });
 
 //DELETE TRADE
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuth, async (req, res) => {
   try {
+    const existingTrade = await getTradeById(req.params.id);
+    if (!existingTrade) {
+      return res.status(404).json({ error: "Trade not found" });
+    }
+
+    const requesterId = getId(existingTrade.requester);
+    if (String(requesterId) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Only the requester can delete this trade" });
+    }
+
     const trade = await deleteTrade(req.params.id);
     if (!trade) {
       return res.status(404).json({ error: "Trade not found" });
@@ -97,18 +151,4 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-//HISTORY OF TRADES FOR USER
-router.get("/history/:userId", async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    const trades = await getUserTradeHistory(userId);
-    if (!trades || trades.length === 0) {
-      return res.status(404).json({ message: "No completed trades found for this user" });
-    }
-    res.json(trades);
-  } catch (error) {
-    console.error("Error fetching trade history:", error);
-    res.status(500).json({ message: "Failed to fetch trade history" });
-  }
-});
 export default router;
