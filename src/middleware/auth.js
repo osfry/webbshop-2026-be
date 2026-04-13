@@ -6,14 +6,21 @@ export function requireAuth(req, res, next) {
     return res.status(401).json({ message: "Missing or invalid Authorization header" });
   }
   const token = authHeader.split(" ")[1];
-  if (!process.env.JWT_SECRET) {
+  if (!process.env.JWT_ACCESS_SECRET) {
     return res.status(500).json({ message: "JWT secret is not configured" });
   }
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     req.user = payload;
     next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
+}
+
+export function requireAdmin(req, res, next) {
+  if (req.user && req.user.role === 'admin'){
+    next()
+  }
+  res.status(403).json({message: 'Access denied. Admin required'})
 }

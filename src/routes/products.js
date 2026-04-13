@@ -107,7 +107,7 @@ router.delete("/:id", requireAuth, validateId, async (req, res) => {
 
     if (product.owner._id.toString() !== userId) {
       return res.status(403).json({ 
-        message: "You do not own the rights to delete this product" 
+        message: "You do not own the rights to delete this product"
       });
     }
 
