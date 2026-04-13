@@ -3,10 +3,11 @@ import { validateRegister, validateAuthResult } from "../middleware/authValidati
 import { createUser, findUserByEmail, getUserWithPlants, getUserWithTrades } from "../db/users.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { loginLimiter, registerLimiter } from "../middleware/rateLimit.js";
 
 const router = Router();
 
-router.post("/register", validateRegister, validateAuthResult, async (req, res) => {
+router.post("/register", registerLimiter, validateRegister, validateAuthResult, async (req, res) => {
   try {
     const { name, email, password, profileImage, about } = req.body;
 
@@ -30,7 +31,7 @@ router.post("/register", validateRegister, validateAuthResult, async (req, res) 
 });
 
 // Login
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 

@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.js";
 import tradesRouter from "./routes/trade.js";
 import meRouter from "./routes/me.js";
 import cors from "cors";
+import { globalLimiter } from "./middleware/rateLimit.js";
 
 const app = express();
 
@@ -43,5 +44,8 @@ app.use("/products", productsRouter);
 app.use("/auth", authRouter);
 app.use("/me", meRouter);
 //TODO: Add more routes as needed
+
+app.set("trust proxy", 1);
+app.use(globalLimiter);
 
 export default app;
