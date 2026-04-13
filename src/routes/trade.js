@@ -77,10 +77,10 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (product.owner?._id ?? product.owner === requesterId) {
+    const ownerId = getId(product.owner);
+    if (ownerId === requesterId) {
       return res.status(400).json({ message: "You cannot create a trade for your own product" });
     }
-
     const trade = await createTrade({
       requester: requesterId,
       receiver: product.owner,
