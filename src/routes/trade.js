@@ -93,7 +93,7 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
     await createNotification({
       user: product.owner,
       message: "Du har fått en ny trade förfrågan på din krukmonster till planta",
-      trade: trade_id,
+      trade: trade._id,
     });
 
     res.status(201).json(trade);

@@ -39,7 +39,7 @@ router.get("/trades", async (req, res) => {
 
 router.get("/notifications", async (req, res) => {
   try {
-    const notification = await markReadNotification(req.params.id)
+    const notification = await getNotificationForUser({ userId: req.user.id })
     if(!notification) {
       return res.status(404).json({message: "Notification not found"})
     }
