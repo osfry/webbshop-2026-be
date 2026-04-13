@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { findUserById, getUserWithPlants, getUserWithTrades } from "../db/users.js";
+import { getUserTradeHistory } from "../db/trades.js";
 
 const router = Router();
 
@@ -30,6 +31,15 @@ router.get("/plants", async (req, res) => {
 router.get("/trades", async (req, res) => {
   try {
     const trades = await getUserWithTrades(req.user.id);
+    res.json(trades);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/trades/history", async (req, res) => {
+  try {
+    const trades = await getUserTradeHistory(req.user.id);
     res.json(trades);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
