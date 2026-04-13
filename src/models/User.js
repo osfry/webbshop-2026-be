@@ -14,6 +14,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  profileImage: {
+    type: String,
+    requried: false,
+  },
+  about: {
+    type: String,
+    required: false,
+  },
 });
 
 userSchema.pre(
@@ -22,7 +30,7 @@ userSchema.pre(
     if (!this.isModified("password")) {
       return next();
     }
-    //TODO: Add salt and hash 
+    //TODO: Add salt and hash
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     next();
