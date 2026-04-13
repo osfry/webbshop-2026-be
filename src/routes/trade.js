@@ -4,6 +4,7 @@ import { getTrades, getTradeById, createTrade, deleteTrade, getUserTradeHistory 
 import { getProductById } from "../db/products.js";
 import { validateProductResult } from "../middleware/productValidation.js";
 import { requireAuth } from "../middleware/auth.js";
+import { createNotification } from "../db/notifications.js";
 
 const router = Router();
 
@@ -87,6 +88,14 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
       product: productId,
       status: "pending",
     });
+
+    // Skapa notis till receiver
+    await createNotification({
+      user: product.owner,
+      message: "Du har fått en ny trade förfrågan på din krukmonster till planta",
+      trade: trade_id,
+    });
+
     res.status(201).json(trade);
   } catch (error) {
     console.error("Trade creation error:", error);
