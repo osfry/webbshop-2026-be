@@ -17,10 +17,12 @@ const userSchema = new mongoose.Schema({
   profileImage: {
     type: String,
     requried: false,
+    default: "",
   },
   about: {
     type: String,
     required: false,
+    default: "",
   },
 });
 

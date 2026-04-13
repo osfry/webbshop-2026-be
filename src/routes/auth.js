@@ -15,7 +15,7 @@ router.post("/register", validateRegister, validateAuthResult, async (req, res) 
       return res.status(409).json({ error: "Email already registered" });
     }
 
-    const user = await createUser({ name, email, password, profileImage: "", about: "" });
+    const user = await createUser({ name, email, password, profileImage, about });
     res.status(201).json({
       id: user._id,
       name: user.name,
