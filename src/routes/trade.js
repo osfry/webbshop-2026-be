@@ -10,9 +10,10 @@ const router = Router();
 function getId(value) {
   if (!value) return null;
   if (typeof value === "object") {
-    return value._id ?? value.id ?? "";
+    const id = value._id ?? value.id;
+    return id ? id.toString() : "";
   }
-  return value;
+  return value.toString();
 }
 
 function isTradeParticipant(trade, userId) {
@@ -83,7 +84,7 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
     }
     const trade = await createTrade({
       requester: requesterId,
-      receiver: product.owner,
+      receiver: ownerId,
       product: productId,
       status: "pending",
     });
