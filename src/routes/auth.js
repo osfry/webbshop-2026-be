@@ -59,25 +59,25 @@ router.post("/login", async (req, res) => {
 });
 
 
-// router.post("/refresh", async (req, res) => {
-//   const { refreshToken } = req.body;
+router.post("/refresh", async (req, res) => {
+  const { refreshToken } = req.body;
 
-//   if (!refreshToken) {
-//     return res.status(401).json({ message: "Refresh Token required" });
-//   }
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh Token required" });
+  }
 
-//   try {
-//     // Kolla om token är giltig
-//     const decodedToken = verifyRefreshToken(refreshToken);
+  try {
+    // Kolla om token är giltig
+    const decodedToken = verifyRefreshToken(refreshToken);
 
-//     // Om den är giltig, skapa en NY access token
-//     const newAccessToken = generateAccessToken({ id: decodedToken.id });
+    // Om den är giltig, skapa en NY access token
+    const newAccessToken = generateAccessToken({ id: decodedToken.id });
 
-//     res.json({ accessToken: newAccessToken });
-//   } catch (err) {
-//     return res.status(403).json({ message: "Invalid Refresh Token" });
-//   }
-// });
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid Refresh Token" });
+  }
+});
 
 // Logout
 router.post("/logout", (req, res) => {
