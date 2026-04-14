@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
-import { findUserById, getUserWithPlants, getUserWithTrades } from "../db/users.js";
+import { findUserById, getUserWithPlants, getUserWithTrades, updateUser } from "../db/users.js";
 
 const router = Router();
 
@@ -31,6 +31,16 @@ router.get("/trades", async (req, res) => {
   try {
     const trades = await getUserWithTrades(req.user.id);
     res.json(trades);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.patch("/", async (req, res) => {
+  try {
+    const { name, profileImage, about } = req.body;
+    const updatedUser = await updateUser(req.user.id, { name, profileImage, about });
+    res.json(updatedUser);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
