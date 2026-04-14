@@ -1,6 +1,6 @@
 import User from "../models/User.js";
-import Product from "../models/Product.js"
-import Trade from "../models/Trade.js"
+import Product from "../models/Product.js";
+import Trade from "../models/Trade.js";
 
 export async function createUser(userData) {
   const user = new User(userData);
@@ -13,12 +13,16 @@ export async function findUserByEmail(email) {
 }
 
 export async function getUserWithPlants(id) {
-  return await Product.find({ owner: id })
+  return await Product.find({ owner: id });
 }
 export async function getUserWithTrades(id) {
-  return await Trade.find({ $or: [{ requester: id}, {receiver: id }]});
+  return await Trade.find({ $or: [{ requester: id }, { receiver: id }] });
 }
 
 export async function findUserById(id) {
   return await User.findById(id).select("-password");
+}
+
+export async function updateUser(id, updateData) {
+  return await User.findByIdAndUpdate(id, updateData, { new: true }).select("-password");
 }
