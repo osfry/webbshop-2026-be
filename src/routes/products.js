@@ -3,8 +3,29 @@ import { validateId, validateProduct, validateProductUpdate } from "../middlewar
 import { requireAuth } from "../middleware/auth.js";
 import { getProducts, createProduct, getProductById, updateProduct, deleteProduct } from "../db/products.js";
 import { productsReadLimiter } from "../middleware/rateLimit.js";
+import upload from "../config/cloudinaryConfig.js";
 
 const router = Router();
+
+function parseProductFormData(req, res, next) {
+  try {
+    if (req.file) {
+      req.body.image = req.file.path;
+    }
+
+    if (typeof req.body.coordinates === "string") {
+      req.body.coordinates = JSON.parse(req.body.coordinates);
+    }
+
+    if (typeof req.body.lightRequirements === "string") {
+      req.body.lightRequirements = Number(req.body.lightRequirements);
+    }
+
+    next();
+  } catch {
+    return res.status(400).json({ message: "Invalid form data" });
+  }
+}
 
 router.get("/", productsReadLimiter, async (req, res) => {
   const products = await getProducts();
@@ -30,11 +51,11 @@ router.get("/:id", productsReadLimiter, validateId, async (req, res) => {
 
 //TODO GET /products/:slug
 
-router.post("/", requireAuth, validateProduct, async (req, res) => {
+router.post("/", requireAuth,upload.single("image"), parseProductFormData, validateProduct, async (req, res) => {
   try {
     const { name, description, image, lightRequirements, coordinates } = req.body;
     const ownerId = req.user.id;
-
+    
     const product = await createProduct({
       name,
       description,
