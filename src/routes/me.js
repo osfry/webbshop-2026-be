@@ -1,10 +1,23 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { findUserById, getUserWithPlants, getUserWithTrades, updateUser } from "../db/users.js";
+import upload from "../config/cloudinaryConfig.js";
 
 const router = Router();
 
 router.use(requireAuth);
+
+function parseUserFormData(req, res, next) {
+  try {
+    if (req.file) {
+      req.body.profileImage = req.file.path;
+    }
+
+    next();
+  } catch {
+    return res.status(400).json({ message: "Invalid form data" });
+  }
+}
 
 router.get("/", async (req, res) => {
   try {
@@ -36,7 +49,7 @@ router.get("/trades", async (req, res) => {
   }
 });
 
-router.patch("/", async (req, res) => {
+router.patch("/", upload.single("profileImage"), parseUserFormData, async (req, res) => {
   try {
     const { name, profileImage, about } = req.body;
     const updatedUser = await updateUser(req.user.id, { name, profileImage, about });
