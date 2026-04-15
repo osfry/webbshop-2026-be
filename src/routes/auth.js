@@ -4,31 +4,52 @@ import { createUser, findUserByEmail, getUserWithPlants, getUserWithTrades } fro
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { loginLimiter, registerLimiter } from "../middleware/rateLimit.js";
+import upload from "../config/cloudinaryConfig.js";
 
 const router = Router();
 
-router.post("/register", registerLimiter, validateRegister, validateAuthResult, async (req, res) => {
+function parseUserFormData(req, res, next) {
   try {
-    const { name, email, password, profileImage, about } = req.body;
-
-    const existingUser = await findUserByEmail(email);
-    if (existingUser) {
-      return res.status(409).json({ error: "Email already registered" });
+    if (req.file) {
+      req.body.profileImage = req.file.path;
     }
 
-    const user = await createUser({ name, email, password, profileImage, about });
-    res.status(201).json({
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      profileImage: user.profileImage,
-      about: user.about,
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({ error: "Registration failed" });
+    next();
+  } catch {
+    return res.status(400).json({ message: "Invalid form data" });
   }
-});
+}
+
+router.post(
+  "/register",
+  upload.single("profileImage"),
+  parseUserFormData,
+  registerLimiter,
+  validateRegister,
+  validateAuthResult,
+  async (req, res) => {
+    try {
+      const { name, email, password, profileImage, about } = req.body;
+
+      const existingUser = await findUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+
+      const user = await createUser({ name, email, password, profileImage, about });
+      res.status(201).json({
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        profileImage: user.profileImage,
+        about: user.about,
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Registration failed" });
+    }
+  },
+);
 
 // Login
 router.post("/login", loginLimiter, async (req, res) => {
