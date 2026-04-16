@@ -2,9 +2,9 @@ import { Router } from "express";
 import { validateRegister, validateAuthResult } from "../middleware/authValidation.js";
 import { createUser, findUserByEmail, getUserWithPlants, getUserWithTrades } from "../db/users.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { loginLimiter, registerLimiter } from "../middleware/rateLimit.js";
 import upload from "../config/cloudinaryConfig.js";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/token.js";
 
 const router = Router();
 
@@ -71,11 +71,33 @@ router.post("/login", loginLimiter, async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const accessToken = generateAccessToken(user)
+    const refreshToken = generateRefreshToken(user)
 
-    res.json({ token });
+    res.json({ accessToken, refreshToken, userId: user._id });
   } catch (error) {
     res.status(500).json({ message: "Server error " });
+  }
+});
+
+
+router.post("/refresh", async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh Token required" });
+  }
+
+  try {
+    // Kolla om token är giltig
+    const decodedToken = verifyRefreshToken(refreshToken);
+
+    // Om den är giltig, skapa en NY access token
+    const newAccessToken = generateAccessToken({ id: decodedToken.id });
+
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid Refresh Token" });
   }
 });
 
