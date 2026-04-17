@@ -51,11 +51,16 @@ router.get("/:id", productsReadLimiter, validateId, async (req, res) => {
 
 //TODO GET /products/:slug
 
-router.post("/", requireAuth,upload.single("image"), parseProductFormData, validateProduct, async (req, res) => {
+router.post("/", requireAuth, upload.single("image"), parseProductFormData, validateProduct, async (req, res) => {
   try {
-    const { name, description, image, lightRequirements, coordinates } = req.body;
+    const { name, description, lightRequirements, coordinates } = req.body;
+    const image = req.file?.path; // ← cloudinary URL från multer-storage-cloudinary
     const ownerId = req.user.id;
-    
+
+    if (!image) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
     const product = await createProduct({
       name,
       description,
@@ -64,10 +69,11 @@ router.post("/", requireAuth,upload.single("image"), parseProductFormData, valid
       coordinates,
       owner: ownerId,
     });
+
     res.status(201).json(product);
   } catch (error) {
     console.error("POST /products error:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: error.message || "Server error" });
   }
 });
 
@@ -112,8 +118,8 @@ router.delete("/:id", requireAuth, validateId, async (req, res) => {
     }
 
     if (product.owner._id.toString() !== userId) {
-      return res.status(403).json({ 
-        message: "You do not own the rights to delete this product"
+      return res.status(403).json({
+        message: "You do not own the rights to delete this product",
       });
     }
 
