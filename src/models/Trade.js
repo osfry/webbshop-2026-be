@@ -22,7 +22,12 @@ const tradeSchema = new mongoose.Schema(
       enum: ["pending", "accepted", "rejected", "completed"],
       default: "pending",
     },
-    //TODO: Add more fields as needed
+    mettingPlace: {
+      type: String
+    },
+    meetingTime: {
+      type: Date
+    }
   },
   { timestamps: true },
 );

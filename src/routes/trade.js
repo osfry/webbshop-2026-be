@@ -110,16 +110,45 @@ router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async 
     if (!existingTrade) {
       return res.status(404).json({ message: "Trade not found" });
     }
+    const { status } = req.body;
 
     const receiverId = getId(existingTrade.receiver);
-    if (receiverId !== req.user.id) {
+    const requesterId = getId(existingTrade.requester);
+    const isParticipant = requesterId === req.user.id || receiverId === req.user.id;
+    const isReceiver = receiverId === req.user.id;
+
+    if(status ===  "completed" && !isParticipant) {
+      return res.status(403).json({ message: "Only trade participants can mark trade as completed" });
+    }
+
+    if(status !== "completed" && !isReceiver) {
       return res.status(403).json({ message: "Only the receiver can update trade status" });
     }
 
-    const { status } = req.body;
     if (status === "accepted") {
-      //TODO: what should happen if accepted?
-    } else if (status === "rejected") {
+      existingTrade.meetingPlace = req.body.meetingPlace;
+      existingTrade.meetingTime = req.body.meetingTime;
+
+      await createNotification({
+        user: existingTrade.requester,
+        message: `Ditt bytesförslag har accepterats! Mötes: ${req.body.meetingPlace} ${new Date(req.body.meetingTime).toLocaleString("sv-SE")}`,
+        trade: existingTrade._id,
+      });
+    }
+
+    if (status === "completed") {
+      const notifyUserId = req.user.id === requesterId
+        ? existingTrade.receiver
+        : existingTrade.requester;
+
+      await createNotification({
+        user: notifyUserId,
+        message: "Bytet har markerats som genomfört!",
+        trade: existingTrade._id,
+      });
+    }
+
+    if (status === "rejected") {
       await existingTrade.deleteOne();
       return res.json({ message: "Trade rejected and deleted successfully" });
     }
