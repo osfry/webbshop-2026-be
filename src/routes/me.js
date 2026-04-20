@@ -3,6 +3,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { findUserById, getUserWithPlants, getUserWithTrades, updateUser } from "../db/users.js";
 import upload from "../config/cloudinaryConfig.js";
 import { getUserTradeHistory } from "../db/trades.js";
+import { getNotificationForUser, markReadNotification } from "../db/notifications.js";
 
 const router = Router();
 
@@ -68,5 +69,17 @@ router.get("/trades/history", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+router.get("/notifications", async (req, res) => {
+  try {
+    const notification = await getNotificationForUser({ userId: req.user.id })
+    if(!notification) {
+      return res.status(404).json({message: "Notification not found"})
+    }
+    res.json(notification)
+  } catch (error) {
+    res.status(500).json({message: "Server error" })
+  }
+})
 
 export default router;
