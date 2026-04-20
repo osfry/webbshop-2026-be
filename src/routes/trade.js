@@ -78,7 +78,7 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (product.owner?._id ?? product.owner === requesterId) {
+if (getId(product.owner) === requesterId) {
       return res.status(400).json({ message: "You cannot create a trade for your own product" });
     }
 
@@ -112,8 +112,8 @@ router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async 
     }
     const { status } = req.body;
 
-    const receiverId = getId(existingTrade.receiver);
-    const requesterId = getId(existingTrade.requester);
+    const receiverId = getId(existingTrade.receiver)?.toString();
+    const requesterId = getId(existingTrade.requester)?.toString();
     const isParticipant = requesterId === req.user.id || receiverId === req.user.id;
     const isReceiver = receiverId === req.user.id;
 

@@ -22,7 +22,7 @@ const tradeSchema = new mongoose.Schema(
       enum: ["pending", "accepted", "rejected", "completed"],
       default: "pending",
     },
-    mettingPlace: {
+    meetingPlace: {
       type: String
     },
     meetingTime: {
