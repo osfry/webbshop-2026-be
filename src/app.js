@@ -27,17 +27,28 @@ app.use(async (req, res, next) => {
     next(err);
   }
 });
-app.use(cors({
-    origin: ["http://localhost:5500", "http://127.0.0.1:5500"], 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "http://localhost:5501",
+      "http://127.0.0.1:5501",
+      "https://plot-twist-fe.vercel.app",
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"] 
-}));
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.get("/", (req, res) => {
-  res.json({ message: "Webbshop API", stack: "MEN (MongoDB, Express, Node.js)" });
+  res.json({
+    message: "Webbshop API",
+    stack: "MEN (MongoDB, Express, Node.js)",
+  });
 });
 
 app.get("/health", (req, res) => {
