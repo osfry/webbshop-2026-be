@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const tradeSchema = new mongoose.Schema(
   {
     requester: {
@@ -23,7 +24,8 @@ const tradeSchema = new mongoose.Schema(
       default: "pending",
     },
     meetingPlace: {
-      type: String
+      lat: { type: Number },
+      lng: { type: Number }
     },
     meetingTime: {
       type: Date

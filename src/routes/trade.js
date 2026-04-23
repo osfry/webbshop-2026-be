@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateTrade, validateTradeResult, validateTradeStatus } from "../middleware/tradeValidation.js";
-import { getTrades, getTradeById, createTrade, deleteTrade, getUserTradeHistory } from "../db/trades.js";
+import { getTrades, getTradeById, createTrade, deleteTrade, getUserTradeHistory, updateTradeStatus } from "../db/trades.js";
 import { getProductById } from "../db/products.js";
 import { validateProductResult } from "../middleware/productValidation.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -105,75 +105,24 @@ router.post("/", requireAuth, validateTrade, validateProductResult, validateTrad
 });
 
 //CHANGE TRADE STATUS
+// Se till att auth och validateTradeResult står med innan (req, res)!
 router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async (req, res) => {
   try {
-    const existingTrade = await getTradeById(req.params.id);
-    if (!existingTrade) {
-      return res.status(404).json({ message: "Trade not found" });
-    }
-    const { status } = req.body;
-
-    const receiverId = getId(existingTrade.receiver)?.toString();
-    const requesterId = getId(existingTrade.requester)?.toString();
-    const isParticipant = requesterId === req.user.id || receiverId === req.user.id;
-    const isReceiver = receiverId === req.user.id;
-
-    if (status === "cancelled") {
-      const isRequester = requesterId === req.user.id;
-      if (!isRequester) {
-        return res.status(403).json({ message: "Only the requester can cancel a trade" });
-      }
-      await createNotification({
-        user: existingTrade.receiver,
-        message: "En bytesförfrågan har avbrutits av avsändaren.",
-        trade: existingTrade._id,
-      });
-      await existingTrade.deleteOne();
-      return res.json({ message: "Trade cancelled successfully" });
-    }
-
-    if (status === "completed" && !isParticipant) {
-      return res.status(403).json({ message: "Only trade participants can mark trade as completed" });
-    }
-
-    if (status !== "completed" && !isReceiver) {
-      return res.status(403).json({ message: "Only the receiver can update trade status" });
-    }
-
-    if (status === "accepted") {
-      existingTrade.meetingPlace = req.body.meetingPlace;
-      existingTrade.meetingTime = req.body.meetingTime;
-
-      await createNotification({
-        user: existingTrade.requester,
-        message: `Ditt bytesförslag har accepterats! Mötes: ${req.body.meetingPlace} ${new Date(req.body.meetingTime).toLocaleString("sv-SE")}`,
-        trade: existingTrade._id,
-      });
-    }
-
-    if (status === "completed") {
-      const notifyUserId = req.user.id === requesterId
-        ? existingTrade.receiver
-        : existingTrade.requester;
-
-      await createNotification({
-        user: notifyUserId,
-        message: "Bytet har markerats som genomfört!",
-        trade: existingTrade._id,
-      });
-    }
-
-    if (status === "rejected") {
-      await existingTrade.deleteOne();
-      return res.json({ message: "Trade rejected and deleted successfully" });
-    }
-
-    existingTrade.status = status;
-    await existingTrade.save();
-    res.json(existingTrade);
-  } catch (error) {
-    console.error("Trade update error:", error);
-    res.status(500).json({ message: "Trade update failed" });
+    // Plockar ut alla tre fälten från frontend
+    const { status, meetingTime, meetingPlace } = req.body;
+    
+    // Skickar med tiden och platsen som "extraData"
+    const trade = await updateTradeStatus(
+        req.params.id, 
+        req.user.id, // <-- Här kraschade det förut för att auth saknades!
+        status, 
+        { meetingTime, meetingPlace }
+    );
+    
+    res.json(trade);
+  } catch (err) {
+    console.error("Update trade error:", err);
+    res.status(400).json({ message: err.message });
   }
 });
 
