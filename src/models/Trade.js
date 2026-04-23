@@ -19,7 +19,7 @@ const tradeSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ["pending", "accepted", "rejected", "completed"],
+      enum: ["pending", "accepted", "rejected", "completed", "cancelled"],
       default: "pending",
     },
     meetingPlace: {
