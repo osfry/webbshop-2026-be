@@ -118,11 +118,25 @@ router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async 
     const isParticipant = requesterId === req.user.id || receiverId === req.user.id;
     const isReceiver = receiverId === req.user.id;
 
-    if(status ===  "completed" && !isParticipant) {
+    if (status === "cancelled") {
+      const isRequester = requesterId === req.user.id;
+      if (!isRequester) {
+        return res.status(403).json({ message: "Only the requester can cancel a trade" });
+      }
+      await createNotification({
+        user: existingTrade.receiver,
+        message: "En bytesförfrågan har avbrutits av avsändaren.",
+        trade: existingTrade._id,
+      });
+      await existingTrade.deleteOne();
+      return res.json({ message: "Trade cancelled successfully" });
+    }
+
+    if (status === "completed" && !isParticipant) {
       return res.status(403).json({ message: "Only trade participants can mark trade as completed" });
     }
 
-    if(status !== "completed" && !isReceiver) {
+    if (status !== "completed" && !isReceiver) {
       return res.status(403).json({ message: "Only the receiver can update trade status" });
     }
 

@@ -9,8 +9,8 @@ export const validateTrade = [
 
 export const validateTradeStatus = [
   body("status")
-    .isIn(["pending", "accepted", "rejected", "completed"])
-    .withMessage("Status must be pending, accepted, rejected or completed"),
+    .isIn(["pending", "accepted", "rejected", "completed", "cancelled"])
+    .withMessage("Status must be pending, accepted, rejected, completed or cancelled"),
 
     body("meetingPlace")
       .if(body("status").equals("accepted"))
