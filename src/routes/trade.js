@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateTrade, validateTradeResult, validateTradeStatus } from "../middleware/tradeValidation.js";
-import { getTrades, getTradeById, createTrade, deleteTrade, getUserTradeHistory } from "../db/trades.js";
+import { getTrades, getTradeById, createTrade, deleteTrade, getUserTradeHistory, updateTradeStatus } from "../db/trades.js";
 import { getProductById } from "../db/products.js";
 import { validateProductResult } from "../middleware/productValidation.js";
 import { requireAuth } from "../middleware/auth.js";

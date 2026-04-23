@@ -1,4 +1,5 @@
 import Trade from "../models/Trade.js";
+import { createNotification } from "./notifications.js";
 
 export async function getTrades() {
   // return await Trade.find().populate("requester receiver product");
