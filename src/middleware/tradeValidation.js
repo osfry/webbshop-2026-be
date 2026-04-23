@@ -9,7 +9,7 @@ export const validateTrade = [
 
 export const validateTradeStatus = [
   body("status")
-    .isIn(["accepted", "rejected", "completed"])
+    .isIn(["accepted", "rejected", "completed", "cancelled"])
     .withMessage("Invalid status"),
     
   // Tillåter datum om det skickas med

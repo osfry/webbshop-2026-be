@@ -115,24 +115,50 @@ router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async 
 
     const receiverId = getId(existingTrade.receiver)?.toString();
     const requesterId = getId(existingTrade.requester)?.toString();
+    
     const isParticipant = requesterId === req.user.id || receiverId === req.user.id;
     const isReceiver = receiverId === req.user.id;
+    const isRequester = requesterId === req.user.id; // Lade till denna för tydlighet!
 
     if (status === "completed" && !isParticipant) {
       return res.status(403).json({ message: "Only trade participants can mark trade as completed" });
     }
 
-    if (status !== "completed" && !isReceiver) {
-      return res.status(403).json({ message: "Only the receiver can updatrade se ttatus" });
+    if (status === "cancelled" && !isRequester) {
+      return res.status(403).json({ message: "Only the requester can cancel a trade" });
+    }
+
+    // Fixen: Vi tillåter nu att requester skickar "cancelled" utan att fastna här!
+    if (status !== "completed" && status !== "cancelled" && !isReceiver) {
+      return res.status(403).json({ message: "Only the receiver can update this status" });
+    }
+
+    // CANCEL-FUNKTION
+    if (status === "cancelled") {
+      await createNotification({
+        user: existingTrade.receiver,
+        message: "En bytesförfrågan har avbrutits av avsändaren.",
+        trade: existingTrade._id,
+      });
+      await existingTrade.deleteOne();
+      return res.json({ message: "Trade cancelled successfully" });
+    }
+
+    if (status === "rejected") {
+      await existingTrade.deleteOne();
+      return res.json({ message: "Trade rejected and deleted successfully" });
     }
 
     if (status === "accepted") {
       existingTrade.meetingPlace = req.body.meetingPlace;
       existingTrade.meetingTime = req.body.meetingTime;
 
+      // Ett litet tips: Om meetingPlace nu är ett objekt (lat/lng) blir texten "[object Object]". 
+      const meetingTimeFormatted = req.body.meetingTime ? new Date(req.body.meetingTime).toLocaleString("sv-SE") : "Ingen tid vald";
+
       await createNotification({
         user: existingTrade.requester,
-        message: `Ditt bytesförslag har accepterats! Mötes: ${req.body.meetingPlace} ${new Date(req.body.meetingTime).toLocaleString("sv-SE")}`,
+        message: `Ditt bytesförslag har accepterats! Mötestid: ${meetingTimeFormatted}`,
         trade: existingTrade._id,
       });
     }
@@ -147,14 +173,10 @@ router.put("/:id", requireAuth, validateTradeStatus, validateTradeResult, async 
       });
     }
 
-    if (status === "rejected") {
-      await existingTrade.deleteOne();
-      return res.json({ message: "Trade rejected and deleted successfully" });
-    }
-
     existingTrade.status = status;
     await existingTrade.save();
     res.json(existingTrade);
+
   } catch (error) {
     console.error("Trade update error:", error);
     res.status(500).json({ message: "Trade update failed" });
