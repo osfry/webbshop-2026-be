@@ -1,9 +1,14 @@
 import Notification from "../models/Notification.js";
 
-export async function createNotification({ user, message, trade}) {
-    const notification = new Notification({ user, message, trade })
-    await notification.save()
-    return notification
+export async function createNotification(data) {
+  const notification = new Notification({
+    user: data.user,         // Matchar ditt schema
+    message: data.message,   // Matchar ditt schema
+    trade: data.trade        // Matchar ditt schema
+  });
+  
+  await notification.save();
+  return notification;
 }
 
 export async function getNotificationForUser({userId}) {

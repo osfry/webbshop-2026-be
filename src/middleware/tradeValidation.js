@@ -9,20 +9,28 @@ export const validateTrade = [
 
 export const validateTradeStatus = [
   body("status")
-    .isIn(["pending", "accepted", "rejected", "completed", "cancelled"])
-    .withMessage("Status must be pending, accepted, rejected, completed or cancelled"),
+    .isIn(["accepted", "rejected", "completed"])
+    .withMessage("Invalid status"),
+    
+  // Tillåter datum om det skickas med
+  body("meetingTime")
+    .optional()
+    .isISO8601()
+    .withMessage("Meeting time must be a valid date"),
+    
+  // Tillåter ett objekt med koordinater om det skickas med
+  body("meetingPlace")
+    .optional()
+    .isObject()
+    .withMessage("Meeting place must be an object with coordinates"),
 
-    body("meetingPlace")
-      .if(body("status").equals("accepted"))
-        .notEmpty()
-      .withMessage("Meeting place is required to accept this trade"),
-
-      body("meetingTime")
-        .if(body("status").equals("accepted"))
-        .notEmpty()
-        .withMessage("Meeting time is required to accept this trade")
-        .isISO8601()
-        .withMessage("Meeting time must be valid date"),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  },
 ];
 
 export const validateTradeResult = (req, res, next) => {
